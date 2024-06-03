@@ -4,68 +4,85 @@ class Marcas extends Controller
     public function __construct()
     {
         session_start();
+        $this->redirectIfNotLoggedIn();
+        parent::__construct();
+        $this->redirectIfNotAdmin();
+    }
+
+    private function redirectIfNotLoggedIn()
+    {
         if (empty($_SESSION['activo'])) {
             header("location: " . base_url);
         }
-        parent::__construct();
+    }
+
+    private function redirectIfNotAdmin()
+    {
         if ($_SESSION['id_usuario'] != 1) {
             header("location: " . base_url);
         }
     }
+
     public function index()
     {
         $this->views->getView($this, "index");
     }
+
     public function listar()
     {
-        $id_user = $_SESSION['id_usuario'];
         $data = $this->model->getMarcas(1);
-        for ($i = 0; $i < count($data); $i++) {
-            $data[$i]['estado'] = '<span class="badge bg-success">Activo</span>';
-            $data[$i]['editar'] = '<button class="btn btn-outline-primary" type="button" onclick="btnEditarMarca(' . $data[$i]['id'] . ');"><i class="fas fa-edit"></i></button>';
-            $data[$i]['eliminar'] = '<button class="btn btn-outline-danger" type="button" onclick="btnEliminarMarca(' . $data[$i]['id'] . ');"><i class="fas fa-trash-alt"></i></button>';
-        }
+        $data = $this->formatMarcasData($data);
         echo json_encode($data, JSON_UNESCAPED_UNICODE);
         die();
     }
+
+    private function formatMarcasData($data)
+    {
+        for ($i = 0; $i < count($data); $i++) {
+            $data[$i]['estado'] = '<span class="badge bg-success">Activo</span>';
+            $data[$i]['editar'] = $this->createButton('primary', 'edit', 'btnEditarMarca', $data[$i]['id']);
+            $data[$i]['eliminar'] = $this->createButton('danger', 'trash-alt', 'btnEliminarMarca', $data[$i]['id']);
+        }
+        return $data;
+    }
+
+    private function createButton($color, $icon, $onclickFunction, $id)
+    {
+        return '<button class="btn btn-outline-' . $color . '" type="button" onclick="' . $onclickFunction . '(' . $id . ');"><i class="fas fa-' . $icon . '"></i></button>';
+    }
+
     public function registrar()
     {
         $marca = strClean($_POST['nombre']);
         $id = strClean($_POST['id']);
+
         if (empty($marca)) {
-            $msg = array('msg' => 'El nombre es requerido', 'icono' => 'warning');
+            $this->sendJsonMessage('El nombre es requerido', 'warning');
         } else {
-            if ($id == "") {
-                $data = $this->model->registrarMarca($marca);
-                if ($data == "ok") {
-                    $msg = array('msg' => 'Marca registrado con éxito', 'icono' => 'success');
-                } else if ($data == "existe") {
-                    $msg = array('msg' => 'La marca ya existe', 'icono' => 'warning');
-                } else {
-                    $msg = array('msg' => 'Error al registrar', 'icono' => 'error');
-                }
-            } else {
-                $data = $this->model->modificarMarca($marca, $id);
-                if ($data == "modificado") {
-                    $msg = array('msg' => 'Marca modificado', 'icono' => 'success');
-                } else {
-                    $msg = array('msg' => 'Error al modificar', 'icono' => 'error');
-                }
-            }
+            $data = $id == "" ? $this->model->registrarMarca($marca) : $this->model->modificarMarca($marca, $id);
+            $this->handleMarcaResponse($data, 'Marca registrado con éxito', 'La marca ya existe', 'Error al registrar', 'Marca modificado', 'Error al modificar');
         }
-        echo json_encode($msg, JSON_UNESCAPED_UNICODE);
-        die();
     }
-    private function handleAccionMarcaResponse(int $data, string $successMsg, string $errorMsg)
+
+    private function sendJsonMessage($msg, $icono)
     {
-        if ($data == 1) {
-            $msg = array('msg' => $successMsg, 'icono' => 'success');
-        } else {
-            $msg = array('msg' => $errorMsg, 'icono' => 'error');
-        }
-        echo json_encode($msg, JSON_UNESCAPED_UNICODE);
+        echo json_encode(array('msg' => $msg, 'icono' => $icono), JSON_UNESCAPED_UNICODE);
         die();
     }
+
+    private function handleMarcaResponse($data, $successMsg, $existMsg, $errorMsg, $modifiedMsg = '', $modifiedErrorMsg = '')
+    {
+        if ($data == "ok") {
+            $this->sendJsonMessage($successMsg, 'success');
+        } else if ($data == "modificado") {
+            $this->sendJsonMessage($modifiedMsg, 'success');
+        } else if ($data == "existe") {
+            $this->sendJsonMessage($existMsg, 'warning');
+        } else {
+            $this->sendJsonMessage($data == "modificado" ? $modifiedErrorMsg : $errorMsg, 'error');
+        }
+    }
+
     public function editar(int $id)
     {
         $data = $this->model->editarMarca($id);
@@ -75,14 +92,18 @@ class Marcas extends Controller
 
     public function eliminar(int $id)
     {
-        $data = $this->model->accionMarca(0, $id);
-        $this->handleAccionMarcaResponse($data, 'Marca dado de baja', 'Error al eliminar');
+        $this->accionMarca($id, 0, 'Marca dado de baja', 'Error al eliminar');
     }
 
     public function reingresar(int $id)
     {
-        $data = $this->model->accionMarca(1, $id);
-        $this->handleAccionMarcaResponse($data, 'Marca reingresado', 'Error la reingresar');
+        $this->accionMarca($id, 1, 'Marca reingresado', 'Error la reingresar');
+    }
+
+    private function accionMarca($id, $estado, $successMsg, $errorMsg)
+    {
+        $data = $this->model->accionMarca($estado, $id);
+        $this->sendJsonMessage($data == 1 ? $successMsg : $errorMsg, $data == 1 ? 'success' : 'error');
     }
 
     public function inactivos()
