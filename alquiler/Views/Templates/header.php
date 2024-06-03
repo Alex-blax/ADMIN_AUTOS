@@ -30,7 +30,7 @@
                     <span class="badge bg-success">En Línea</span>
                     <i class="fas fa-user-tie fa-fw"></i></a>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                    <li><a class="dropdown-item" href="<?php echo base_url; ?>Usuarios/perfil">Perfil</a></li>
+                    <!-- <li><a class="dropdown-item" href="<?php echo base_url; ?>Usuarios/perfil">Perfil</a></li> -->
                     <li>
                         <hr class="dropdown-divider" />
                     </li>
@@ -59,8 +59,8 @@
                         <div class="collapse" id="collapseLayouts" aria-labelledby="headingOne" data-bs-parent="#sidenavAccordion">
                             <nav class="sb-sidenav-menu-nested nav">
                                 <a class="nav-link" href="<?php echo base_url; ?>Usuarios">Usuarios</a>
-                                <a class="nav-link" href="<?php echo base_url; ?>Administracion/moneda">Monedas</a>
-                                <a class="nav-link" href="<?php echo base_url; ?>Administracion">Configuración</a>
+                                <!-- <a class="nav-link" href="<?php echo base_url; ?>Administracion/moneda">Monedas</a>
+                                <a class="nav-link" href="<?php echo base_url; ?>Administracion">Configuración</a> -->
                             </nav>
                         </div>
                         <?php } ?>
