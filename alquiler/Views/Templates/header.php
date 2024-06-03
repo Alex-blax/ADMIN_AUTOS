@@ -69,10 +69,10 @@
                             Clientes
                         </a>
                         <?php if ($_SESSION['id_usuario'] == 1) { ?>
-                            <a class="nav-link" href="<?php echo base_url; ?>Documentos">
+                            <!-- <a class="nav-link" href="<?php echo base_url; ?>Documentos">
                                 <div class="sb-nav-link-icon"><i class="fas fa-id-card fa-2x"></i></div>
                                 Documentos
-                            </a>
+                            </a> -->
 
                             <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapseVehiculos" aria-expanded="false" aria-controls="collapseVehiculos">
                                 <div class="sb-nav-link-icon"><i class="fas fa-truck-moving fa-2x"></i></div>
