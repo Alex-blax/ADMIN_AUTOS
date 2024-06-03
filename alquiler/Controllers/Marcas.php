@@ -56,34 +56,35 @@ class Marcas extends Controller
         echo json_encode($msg, JSON_UNESCAPED_UNICODE);
         die();
     }
+    private function handleAccionMarcaResponse(int $data, string $successMsg, string $errorMsg)
+    {
+        if ($data == 1) {
+            $msg = array('msg' => $successMsg, 'icono' => 'success');
+        } else {
+            $msg = array('msg' => $errorMsg, 'icono' => 'error');
+        }
+        echo json_encode($msg, JSON_UNESCAPED_UNICODE);
+        die();
+    }
     public function editar(int $id)
     {
         $data = $this->model->editarMarca($id);
         echo json_encode($data, JSON_UNESCAPED_UNICODE);
         die();
     }
+
     public function eliminar(int $id)
     {
         $data = $this->model->accionMarca(0, $id);
-        if ($data == 1) {
-            $msg = array('msg' => 'Marca dado de baja', 'icono' => 'success');
-        } else {
-            $msg = array('msg' => 'Error al eliminar', 'icono' => 'error');
-        }
-        echo json_encode($msg, JSON_UNESCAPED_UNICODE);
-        die();
+        $this->handleAccionMarcaResponse($data, 'Marca dado de baja', 'Error al eliminar');
     }
+
     public function reingresar(int $id)
     {
         $data = $this->model->accionMarca(1, $id);
-        if ($data == 1) {
-            $msg = array('msg' => 'Marca reingresado', 'icono' => 'success');
-        } else {
-            $msg = array('msg' => 'Error la reingresar', 'icono' => 'error');
-        }
-        echo json_encode($msg, JSON_UNESCAPED_UNICODE);
-        die();
+        $this->handleAccionMarcaResponse($data, 'Marca reingresado', 'Error la reingresar');
     }
+
     public function inactivos()
     {
         $data['marcas'] = $this->model->getMarcas(0);

@@ -8,19 +8,8 @@ class Vehiculos extends Controller{
         }
         parent::__construct();
     }
-    public function index()
+    private function handleVehiculoResponse($data)
     {
-        if ($_SESSION['id_usuario'] != 1) {
-            header("location: " . base_url);
-        }
-        $data['marcas'] = $this->model->getDatos('marcas');
-        $data['tipos'] = $this->model->getDatos('tipos');
-        $this->views->getView($this, "index", $data);
-    }
-    public function listar()
-    {
-        $id_user = $_SESSION['id_usuario'];
-        $data = $this->model->vehiculos();
         $date = date('Y-m-d');
         for ($i = 0; $i < count($data); $i++) {
             $data[$i]['date'] = $date;
@@ -30,6 +19,23 @@ class Vehiculos extends Controller{
         }
         echo json_encode($data, JSON_UNESCAPED_UNICODE);
         die();
+    }
+
+    public function index()
+    {
+        if ($_SESSION['id_usuario'] != 1) {
+            header("location: " . base_url);
+        }
+        $data['marcas'] = $this->model->getDatos('marcas');
+        $data['tipos'] = $this->model->getDatos('tipos');
+        $this->views->getView($this, "index", $data);
+    }
+
+    public function listar()
+    {
+        $id_user = $_SESSION['id_usuario'];
+        $data = $this->model->vehiculos();
+        $this->handleVehiculoResponse($data);
     }
     public function registrar()
     {

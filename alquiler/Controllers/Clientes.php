@@ -23,36 +23,37 @@ class Clientes extends Controller{
         die();
     }
     public function registrar()
-    {
-        $dni = strClean($_POST['dni']);
-        $nombre = strClean($_POST['nombre']);
-        $telefono = strClean($_POST['telefono']);
-        $direccion = strClean($_POST['direccion']);
-        $id = strClean($_POST['id']);
-        if (empty($dni) || empty($nombre) || empty($telefono) || empty($direccion)) {
-            $msg = array('msg' => 'Todo los campos son obligatorios', 'icono' => 'warning');
-        }else{
-            if ($id == "") {
-                $data = $this->model->registrarCliente($dni, $nombre, $telefono, $direccion);
-                if ($data == "ok") {
-                    $msg = array('msg' => 'Cliente registrado con éxito', 'icono' => 'success');
-                } else if ($data == "existe") {
-                    $msg = array('msg' => 'El cliente ya existe', 'icono' => 'warning');
-                } else {
-                    $msg = array('msg' => 'Error al registrar el cliente', 'icono' => 'error');
-                }
-            }else{
-                $data = $this->model->modificarCliente($dni, $nombre, $telefono, $direccion, $id);
-                if ($data == "modificado") {
-                    $msg = array('msg' => 'Cliente modificado', 'icono' => 'success');
-                } else {
-                    $msg = array('msg' => 'Error al modificar el cliente', 'icono' => 'error');
-                }
-            }
-        }
-        echo json_encode($msg, JSON_UNESCAPED_UNICODE);
-        die();
+{
+    $dni = strClean($_POST['dni']);
+    $nombre = strClean($_POST['nombre']);
+    $telefono = strClean($_POST['telefono']);
+    $direccion = strClean($_POST['direccion']);
+    $id = strClean($_POST['id']);
+
+    if (empty($dni) || empty($nombre) || empty($telefono) || empty($direccion)) {
+        $msg = array('msg' => 'Todo los campos son obligatorios', 'icono' => 'warning');
+    } else {
+        $data = $id == "" ? $this->model->registrarCliente($dni, $nombre, $telefono, $direccion) : $this->model->modificarCliente($dni, $nombre, $telefono, $direccion, $id);
+        $msg = $this->handleResponse($data);
     }
+
+    echo json_encode($msg, JSON_UNESCAPED_UNICODE);
+    die();
+}
+
+private function handleResponse($data)
+{
+    switch ($data) {
+        case "ok":
+            return array('msg' => 'Cliente registrado con éxito', 'icono' => 'success');
+        case "existe":
+            return array('msg' => 'El cliente ya existe', 'icono' => 'warning');
+        case "modificado":
+            return array('msg' => 'Cliente modificado', 'icono' => 'success');
+        default:
+            return array('msg' => 'Error al registrar/modificar el cliente', 'icono' => 'error');
+    }
+}
     public function editar(int $id)
     {
         $data = $this->model->editarCli($id);
@@ -60,27 +61,33 @@ class Clientes extends Controller{
         die();
     }
     public function eliminar(int $id)
-    {
-        $data = $this->model->accionCli(0, $id);
-        if ($data == 1) {
-            $msg = array('msg' => 'Cliente dado de baja', 'icono' => 'success');
-        } else {
-            $msg = array('msg' => 'Error al eliminar el cliente', 'icono' => 'error');
-        }
-        echo json_encode($msg, JSON_UNESCAPED_UNICODE);
-        die();
+{
+    $data = $this->model->accionCli(0, $id);
+    $msg = $this->handleActionResponse($data, 'Cliente dado de baja', 'Error al eliminar el cliente');
+    $this->sendResponse($msg);
+}
+
+public function reingresar(int $id)
+{
+    $data = $this->model->accionCli(1, $id);
+    $msg = $this->handleActionResponse($data, 'Cliente reingresado', 'Error al reingresar el cliente');
+    $this->sendResponse($msg);
+}
+
+private function handleActionResponse($data, $successMsg, $errorMsg)
+{
+    if ($data == 1) {
+        return array('msg' => $successMsg, 'icono' => 'success');
+    } else {
+        return array('msg' => $errorMsg, 'icono' => 'error');
     }
-    public function reingresar(int $id)
-    {
-        $data = $this->model->accionCli(1, $id);
-        if ($data == 1) {
-            $msg = array('msg' => 'Cliente reingresado', 'icono' => 'success');
-        } else {
-            $msg = array('msg' => 'Error la reingresar el cliente', 'icono' => 'error');
-        }
-        echo json_encode($msg, JSON_UNESCAPED_UNICODE);
-        die();
-    }
+}
+
+private function sendResponse($msg)
+{
+    echo json_encode($msg, JSON_UNESCAPED_UNICODE);
+    die();
+}
     public function buscarCliente()
     {
         if (isset($_GET['cli'])) {
